@@ -109,6 +109,13 @@ def main():
             fig3 = px.pie(balance_by_dept, values='Balance', names='Department', title="Total Balance by Department")
             st.plotly_chart(fig3, use_container_width=True)
 
+        # Correlation Matrix Heatmap
+        st.subheader("🔍 Correlation Matrix")
+        numeric_data = filtered_data.select_dtypes(include=['float64', 'int64'])
+        correlation_matrix = numeric_data.corr()
+        fig_corr = px.imshow(correlation_matrix, text_auto=True, title="Correlation Matrix Heatmap", aspect="auto")
+        st.plotly_chart(fig_corr, use_container_width=True)
+
         # Payment Method Distribution
         st.subheader("💳 Payment Method Distribution")
         payment_method_dist = filtered_data['Payment_Method'].value_counts().reset_index()
