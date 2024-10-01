@@ -15,6 +15,22 @@ def load_data_from_github(file_url):
     return data
 
 # Main Streamlit App
+
+# Main Streamlit App
+def main():
+    # Logo URL
+    logo_url = "https://d161ew7sqkx7j0.cloudfront.net/public/images/logos/6698_2300_Childrens_Rescue_Fund_Logo_Final.png"
+
+    # Display logo and center it using HTML
+    st.markdown(
+        f"""
+        <div style="text-align: center;">
+            <img src="{logo_url}" alt="Logo" style="width:300px;">
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
 def main():
     # Page Title
     st.title("Comprehensive Financial Dashboard")
