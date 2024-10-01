@@ -58,6 +58,35 @@ def main():
         # Divider for better structure
         st.markdown("---")
 
+        ### New Data Comparisons ###
+
+        # 1. Transaction Type Breakdown
+        st.subheader("🔄 Transaction Type Breakdown")
+        transaction_breakdown = filtered_data['Transaction_Type'].value_counts().reset_index()
+        transaction_breakdown.columns = ['Transaction_Type', 'Count']
+        fig7 = px.pie(transaction_breakdown, values='Count', names='Transaction_Type', title="Transaction Type Breakdown")
+        st.plotly_chart(fig7, use_container_width=True)
+
+        # 2. Top 5 Largest Transactions
+        st.subheader("💼 Top 5 Largest Transactions")
+        largest_transactions = filtered_data.nlargest(5, 'Transaction_Amount')
+        st.dataframe(largest_transactions[['Date', 'Transaction_Type', 'Transaction_Amount', 'Branch_ID', 'Customer_ID', 'Payment_Method']])
+
+        # 3. Average Transaction Amount by Branch
+        st.subheader("🏢 Average Transaction Amount by Branch")
+        avg_transaction_by_branch = filtered_data.groupby('Branch_ID')['Transaction_Amount'].mean().reset_index()
+        fig8 = px.bar(avg_transaction_by_branch, x='Branch_ID', y='Transaction_Amount', title="Average Transaction Amount by Branch", labels={"Branch_ID": "Branch", "Transaction_Amount": "Avg Transaction Amount (USD)"})
+        st.plotly_chart(fig8, use_container_width=True)
+
+        # 4. Balance Comparison by Payment Method
+        st.subheader("💳 Balance Comparison by Payment Method")
+        balance_by_payment_method = filtered_data.groupby('Payment_Method')['Balance'].sum().reset_index()
+        fig9 = px.bar(balance_by_payment_method, x='Payment_Method', y='Balance', title="Balance Comparison by Payment Method", labels={"Payment_Method": "Payment Method", "Balance": "Total Balance (USD)"})
+        st.plotly_chart(fig9, use_container_width=True)
+
+        # Divider for better structure
+        st.markdown("---")
+
         # Transaction Amount Over Time (simplified for better comparison)
         st.subheader("📈 Transaction Amount Over Time")
         fig1 = px.line(filtered_data, x='Date', y='Transaction_Amount', color='Transaction_Type',
