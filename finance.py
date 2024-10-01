@@ -3,9 +3,9 @@ import streamlit as st
 import pandas as pd
 
 # Function to load the CSV file from GitHub
-def load_data_from_github(file_url):
+def load_data_from_github(https://github.com/CRF-Software/FinancialReporting-/blob/main/tcrg-rgat.csv):
     # Read the CSV file content as a pandas dataframe
-    data = pd.read_csv(file_url)
+    data = pd.read_csv(https://github.com/CRF-Software/FinancialReporting-/blob/main/tcrg-rgat.csv)
     return data
 
 # Main Streamlit App
@@ -13,7 +13,7 @@ def main():
     st.title("Financial Data from GitHub")
 
     # Get the GitHub raw file URL from the user
-    file_url = st.text_input("Enter GitHub CSV File URL")
+    file_url = st.text_input("https://github.com/CRF-Software/FinancialReporting-/blob/main/tcrg-rgat.csv")
 
     if file_url:
         try:
