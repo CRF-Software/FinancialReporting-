@@ -23,7 +23,7 @@ def main():
     st.title("Professional Financial Reporting Dashboard")
 
     # Hardcoded GitHub raw file URL
-    file_url = "https://github.com/CRF-Software/FinancialReporting-/blob/main/requirements.txt"
+    file_url = "https://github.com/CRF-Software/FinancialReporting-/blob/main/financial_sample_data.csv"
 
     # Load the data from GitHub
     try:
