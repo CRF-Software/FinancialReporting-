@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -6,7 +5,7 @@ import plotly.graph_objects as go
 from datetime import datetime
 
 # Set page configuration
-st.set_page_config(page_title="Comprehensive Financial Dashboard", layout="wide")
+st.set_page_config(page_title="CFO Financial Dashboard", layout="wide")
 
 # Load the CSV file from GitHub
 @st.cache_data
@@ -17,10 +16,8 @@ def load_data_from_github(file_url):
 
 # Main Streamlit App
 def main():
-    # Logo URL
+    # Logo URL and Title
     logo_url = "https://d161ew7sqkx7j0.cloudfront.net/public/images/logos/6698_2300_Childrens_Rescue_Fund_Logo_Final.png"
-
-    # Display logo and center it using HTML
     st.markdown(
         f"""
         <div style="text-align: center;">
@@ -29,11 +26,9 @@ def main():
         """,
         unsafe_allow_html=True
     )
+    st.title("📊 CFO Financial Dashboard")
 
-    # Page Title
-    st.title("Comprehensive Financial Dashboard")
-
-    # Load the financial data from GitHub
+    # Load financial data from GitHub
     file_url = "https://raw.githubusercontent.com/CRF-Software/FinancialReporting-/main/financial_sample_data.csv"
     data = load_data_from_github(file_url)
 
@@ -57,7 +52,7 @@ def main():
     ]
 
     # Display Key Metrics
-    st.subheader("Key Financial Metrics")
+    st.subheader("💰 Key Financial Metrics")
     total_credits = filtered_data[filtered_data['Transaction_Type'] == 'Credit']['Transaction_Amount'].sum()
     total_debits = filtered_data[filtered_data['Transaction_Type'] == 'Debit']['Transaction_Amount'].sum()
     total_balance = filtered_data['Balance'].sum()
@@ -69,73 +64,69 @@ def main():
 
     st.markdown("---")
 
-    ### Transaction Comparisons ###
+    ### Net Cash Flow Over Time ###
+    st.subheader("💸 Net Cash Flow Over Time")
+    filtered_data['Net_Cash_Flow'] = filtered_data[filtered_data['Transaction_Type'] == 'Credit']['Transaction_Amount'].sum() - filtered_data[filtered_data['Transaction_Type'] == 'Debit']['Transaction_Amount'].sum()
+    net_cash_flow_over_time = filtered_data.groupby('Date')['Net_Cash_Flow'].sum().reset_index()
+    fig_cash_flow = px.line(net_cash_flow_over_time, x='Date', y='Net_Cash_Flow', title="Net Cash Flow Over Time")
+    st.plotly_chart(fig_cash_flow, use_container_width=True)
 
-    # Smaller plot dimensions for better layout
-    plot_height = 350
-    plot_width = 600
+    ### Revenue vs. Expenses by Department ###
+    st.subheader("💼 Revenue vs. Expenses by Department")
+    department_revenue = filtered_data[filtered_data['Transaction_Type'] == 'Credit'].groupby('Department')['Transaction_Amount'].sum().reset_index()
+    department_expenses = filtered_data[filtered_data['Transaction_Type'] == 'Debit'].groupby('Department')['Transaction_Amount'].sum().reset_index()
+    department_revenue_vs_expenses = pd.merge(department_revenue, department_expenses, on='Department', suffixes=('_Revenue', '_Expenses'))
+    fig_revenue_expenses = px.bar(department_revenue_vs_expenses, x='Department', y=['Transaction_Amount_Revenue', 'Transaction_Amount_Expenses'], barmode='group', title="Revenue vs. Expenses by Department")
+    st.plotly_chart(fig_revenue_expenses, use_container_width=True)
 
-    # Transaction Amount by Type
-    st.subheader("Transaction Amount by Type")
-    transaction_by_type = filtered_data.groupby('Transaction_Type')['Transaction_Amount'].sum().reset_index()
-    fig1 = px.bar(transaction_by_type, x='Transaction_Type', y='Transaction_Amount', title="Transaction Amount by Type", width=plot_width, height=plot_height)
-    st.plotly_chart(fig1, use_container_width=False)
+    ### Revenue to Expense Ratio ###
+    st.subheader("📊 Revenue to Expense Ratio by Department")
+    department_revenue_vs_expenses['Revenue_to_Expense_Ratio'] = department_revenue_vs_expenses['Transaction_Amount_Revenue'] / department_revenue_vs_expenses['Transaction_Amount_Expenses']
+    fig_revenue_ratio = px.bar(department_revenue_vs_expenses, x='Department', y='Revenue_to_Expense_Ratio', title="Revenue to Expense Ratio by Department")
+    st.plotly_chart(fig_revenue_ratio, use_container_width=True)
 
-    # Transaction Volume by Payment Method
-    st.subheader("Transaction Volume by Payment Method")
-    transaction_by_payment_method = filtered_data.groupby('Payment_Method')['Transaction_Amount'].sum().reset_index()
-    fig2 = px.pie(transaction_by_payment_method, values='Transaction_Amount', names='Payment_Method', title="Transaction Volume by Payment Method", width=plot_width, height=plot_height)
-    st.plotly_chart(fig2, use_container_width=False)
+    ### Profitability and Operating Expenses ###
+    st.subheader("💼 Profitability and Operating Expenses")
+    gross_profit_margin = (total_credits - total_debits) / total_credits * 100
+    st.metric("Gross Profit Margin", f"{gross_profit_margin:.2f}%")
 
-    # Transaction Amount by Department
-    st.subheader("Transaction Amount by Department")
-    transaction_by_department = filtered_data.groupby('Department')['Transaction_Amount'].sum().reset_index()
-    fig3 = px.bar(transaction_by_department, x='Department', y='Transaction_Amount', title="Transaction Amount by Department", width=plot_width, height=plot_height)
-    st.plotly_chart(fig3, use_container_width=False)
-
-    ### Balance Analysis ###
-
-    # Balance by Branch
-    st.subheader("Balance by Branch")
-    balance_by_branch = filtered_data.groupby('Branch_ID')['Balance'].sum().reset_index()
-    fig4 = px.bar(balance_by_branch, x='Branch_ID', y='Balance', title="Balance by Branch", width=plot_width, height=plot_height)
-    st.plotly_chart(fig4, use_container_width=False)
-
-    # Balance by Payment Method
-    st.subheader("Balance by Payment Method")
-    balance_by_payment_method = filtered_data.groupby('Payment_Method')['Balance'].sum().reset_index()
-    fig5 = px.bar(balance_by_payment_method, x='Payment_Method', y='Balance', title="Balance by Payment Method", width=plot_width, height=plot_height)
-    st.plotly_chart(fig5, use_container_width=False)
-
-    ### Customer Analysis ###
-
-    # Top 10 Customers by Transaction Amount
+    ### Top 10 Customers by Transaction Amount ###
     st.subheader("👥 Top 10 Customers by Transaction Amount")
     top_customers = filtered_data.groupby('Customer_ID')['Transaction_Amount'].sum().nlargest(10).reset_index()
-    fig6 = px.bar(top_customers, x='Customer_ID', y='Transaction_Amount', title="Top 10 Customers by Transaction Amount", width=plot_width, height=plot_height)
-    st.plotly_chart(fig6, use_container_width=False)
+    fig_customers = px.bar(top_customers, x='Customer_ID', y='Transaction_Amount', title="Top 10 Customers by Transaction Amount")
+    st.plotly_chart(fig_customers, use_container_width=True)
+
+    ### Customer Profitability ###
+    st.subheader("👥 Customer Profitability")
+    customer_profitability = filtered_data.groupby('Customer_ID').agg({'Transaction_Amount': 'sum', 'Balance': 'sum'}).reset_index()
+    fig_customer_profit = px.scatter(customer_profitability, x='Customer_ID', y='Transaction_Amount', size='Balance', title="Customer Profitability by Transaction Amount and Balance")
+    st.plotly_chart(fig_customer_profit, use_container_width=True)
 
     ### Tax and Discount Analysis ###
+    st.subheader("🧾 Tax and Discount Insights")
+    total_tax = filtered_data['Tax_Amount'].sum()
+    total_discount = filtered_data['Discount_Amount'].sum()
+
+    col1, col2 = st.columns(2)
+    col1.metric("Total Tax Collected", f"${total_tax:,.2f}")
+    col2.metric("Total Discounts Given", f"${total_discount:,.2f}")
 
     # Total Tax Amount Over Time
-    st.subheader("Total Tax Amount Over Time")
     tax_over_time = filtered_data.groupby('Date')['Tax_Amount'].sum().reset_index()
-    fig7 = px.line(tax_over_time, x='Date', y='Tax_Amount', title="Total Tax Amount Over Time", width=plot_width, height=plot_height)
-    st.plotly_chart(fig7, use_container_width=False)
+    fig_tax = px.line(tax_over_time, x='Date', y='Tax_Amount', title="Total Tax Amount Over Time")
+    st.plotly_chart(fig_tax, use_container_width=True)
 
     # Total Discounts by Payment Method
-    st.subheader("Total Discounts by Payment Method")
     discount_by_payment_method = filtered_data.groupby('Payment_Method')['Discount_Amount'].sum().reset_index()
-    fig8 = px.bar(discount_by_payment_method, x='Payment_Method', y='Discount_Amount', title="Discounts by Payment Method", width=plot_width, height=plot_height)
-    st.plotly_chart(fig8, use_container_width=False)
+    fig_discount = px.bar(discount_by_payment_method, x='Payment_Method', y='Discount_Amount', title="Discounts by Payment Method")
+    st.plotly_chart(fig_discount, use_container_width=True)
 
     ### Correlation Matrix ###
-
-    st.subheader("Correlation Matrix")
+    st.subheader("📊 Correlation Matrix")
     numeric_data = filtered_data.select_dtypes(include=['float64', 'int64'])
     correlation_matrix = numeric_data.corr()
-    fig_corr = px.imshow(correlation_matrix, text_auto=True, title="Correlation Matrix Heatmap", width=plot_width, height=plot_height)
-    st.plotly_chart(fig_corr, use_container_width=False)
+    fig_corr = px.imshow(correlation_matrix, text_auto=True, title="Correlation Matrix Heatmap")
+    st.plotly_chart(fig_corr, use_container_width=True)
 
     st.markdown("---")
     
