@@ -3,6 +3,9 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
+# Set page configuration first
+st.set_page_config(page_title="Accounting & CFO Dashboard", layout="wide")
+
 # Function to load the CSV file from GitHub
 def load_data_from_github(file_url):
     data = pd.read_csv(file_url)
@@ -10,8 +13,6 @@ def load_data_from_github(file_url):
 
 # Main Streamlit App
 def main():
-    st.set_page_config(page_title="Accounting & CFO Dashboard", layout="wide")
-    
     # Page Title
     st.title("Accounting & CFO Dashboard")
 
