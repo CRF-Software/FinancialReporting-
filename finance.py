@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from datetime import datetime
 
 # Set page configuration
 st.set_page_config(page_title="Accounting & CFO Dashboard", layout="wide")
@@ -29,14 +30,18 @@ def main():
         selected_branch = st.sidebar.multiselect("Select Branch", options=data['Branch_ID'].unique(), default=data['Branch_ID'].unique())
         selected_department = st.sidebar.multiselect("Select Department", options=data['Department'].unique(), default=data['Department'].unique())
         selected_payment_method = st.sidebar.multiselect("Select Payment Method", options=data['Payment_Method'].unique(), default=data['Payment_Method'].unique())
-        date_range = st.sidebar.date_input("Select Date Range", [data['Date'].min(), data['Date'].max()])
+        
+        # Date range selection - convert to datetime
+        date_range = st.sidebar.date_input("Select Date Range", [data['Date'].min().date(), data['Date'].max().date()])
+        start_date = datetime.combine(date_range[0], datetime.min.time())
+        end_date = datetime.combine(date_range[1], datetime.max.time())
 
         # Filter data based on sidebar selections
         filtered_data = data[
             (data['Branch_ID'].isin(selected_branch)) &
             (data['Department'].isin(selected_department)) &
             (data['Payment_Method'].isin(selected_payment_method)) &
-            (data['Date'].between(date_range[0], date_range[1]))
+            (data['Date'].between(start_date, end_date))
         ]
 
         # Display Key Metrics (cleaner layout with metrics grouped at the top)
