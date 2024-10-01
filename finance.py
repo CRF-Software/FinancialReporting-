@@ -81,10 +81,12 @@ def main():
             st.plotly_chart(fig3, use_container_width=True)
 
         # Payment Method Distribution
-        st.subheader("💳 Payment Method Distribution")
-        payment_method_dist = filtered_data['Payment_Method'].value_counts().reset_index()
-        fig4 = px.pie(payment_method_dist, values='Payment_Method', names='index', title="Payment Method Distribution", labels={"index": "Payment Method", "Payment_Method": "Count"})
-        st.plotly_chart(fig4, use_container_width=True)
+st.subheader("💳 Payment Method Distribution")
+payment_method_dist = filtered_data['Payment_Method'].value_counts().reset_index()
+payment_method_dist.columns = ['Payment_Method', 'count']  # Renaming columns appropriately
+fig4 = px.pie(payment_method_dist, values='count', names='Payment_Method', title="Payment Method Distribution", labels={"Payment_Method": "Payment Method", "count": "Count"})
+st.plotly_chart(fig4, use_container_width=True)
+
 
         # Tax and Discount Insights (side-by-side comparison for better clarity)
         st.subheader("🧾 Tax and Discount Insights")
