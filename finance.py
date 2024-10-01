@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-# Set page configuration first
+# Set page configuration
 st.set_page_config(page_title="Accounting & CFO Dashboard", layout="wide")
 
 # Function to load the CSV file from GitHub
@@ -14,7 +14,7 @@ def load_data_from_github(file_url):
 # Main Streamlit App
 def main():
     # Page Title
-    st.title("Accounting & CFO Dashboard")
+    st.title("📊 Accounting & CFO Dashboard")
 
     # Load the financial data from GitHub
     file_url = "https://raw.githubusercontent.com/CRF-Software/FinancialReporting-/main/financial_sample_data.csv"
@@ -24,21 +24,7 @@ def main():
         # Format the date column
         data['Date'] = pd.to_datetime(data['Date'])
 
-        # Display Dataset Overview
-        st.write("### Dataset Overview")
-        st.dataframe(data.head())
-
-        # Display Key Metrics
-        total_credits = data[data['Transaction_Type'] == 'Credit']['Transaction_Amount'].sum()
-        total_debits = data[data['Transaction_Type'] == 'Debit']['Transaction_Amount'].sum()
-        total_balance = data['Balance'].sum()
-
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Total Credits", f"${total_credits:,.2f}")
-        col2.metric("Total Debits", f"${total_debits:,.2f}")
-        col3.metric("Total Account Balance", f"${total_balance:,.2f}")
-
-        # Sidebar Filters
+        # Sidebar Filters for cleaner organization
         st.sidebar.header("Filter Data")
         selected_branch = st.sidebar.multiselect("Select Branch", options=data['Branch_ID'].unique(), default=data['Branch_ID'].unique())
         selected_department = st.sidebar.multiselect("Select Department", options=data['Department'].unique(), default=data['Department'].unique())
@@ -53,52 +39,82 @@ def main():
             (data['Date'].between(date_range[0], date_range[1]))
         ]
 
-        st.write(f"### Filtered Data ({len(filtered_data)} records)")
-        st.dataframe(filtered_data)
+        # Display Key Metrics (cleaner layout with metrics grouped at the top)
+        st.subheader("💰 Key Financial Metrics")
+        total_credits = filtered_data[filtered_data['Transaction_Type'] == 'Credit']['Transaction_Amount'].sum()
+        total_debits = filtered_data[filtered_data['Transaction_Type'] == 'Debit']['Transaction_Amount'].sum()
+        total_balance = filtered_data['Balance'].sum()
 
-        # Display Visualizations
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Total Credits", f"${total_credits:,.2f}")
+        col2.metric("Total Debits", f"${total_debits:,.2f}")
+        col3.metric("Total Account Balance", f"${total_balance:,.2f}")
 
-        # 1. Transaction Amount Over Time
-        st.write("### Transaction Amount Over Time")
-        fig = px.line(filtered_data, x='Date', y='Transaction_Amount', color='Transaction_Type', title="Transaction Amount by Type Over Time")
-        st.plotly_chart(fig, use_container_width=True)
+        # Divider for better structure
+        st.markdown("---")
 
-        # 2. Transaction Breakdown by Branch
-        st.write("### Transaction Breakdown by Branch")
-        fig = px.bar(filtered_data, x='Branch_ID', y='Transaction_Amount', color='Transaction_Type', barmode='group', title="Transaction Breakdown by Branch")
-        st.plotly_chart(fig, use_container_width=True)
+        # Transaction Amount Over Time (simplified for better comparison)
+        st.subheader("📈 Transaction Amount Over Time")
+        fig1 = px.line(filtered_data, x='Date', y='Transaction_Amount', color='Transaction_Type',
+                       title="Transaction Amount by Type Over Time", labels={"Transaction_Amount": "Amount (USD)", "Date": "Date"})
+        st.plotly_chart(fig1, use_container_width=True)
 
-        # 3. Total Balance by Department
-        st.write("### Total Balance by Department")
-        balance_by_dept = filtered_data.groupby('Department')['Balance'].sum().reset_index()
-        fig = px.pie(balance_by_dept, values='Balance', names='Department', title="Total Balance by Department")
-        st.plotly_chart(fig, use_container_width=True)
+        # Transaction Breakdown by Branch (side-by-side comparison)
+        st.subheader("🏢 Transaction Breakdown by Branch and Department")
+        col1, col2 = st.columns(2)
 
-        # 4. Payment Method Distribution
-        st.write("### Payment Method Distribution")
+        with col1:
+            st.write("**By Branch**")
+            fig2 = px.bar(filtered_data, x='Branch_ID', y='Transaction_Amount', color='Transaction_Type', barmode='group',
+                          title="Transaction Breakdown by Branch", labels={"Branch_ID": "Branch", "Transaction_Amount": "Amount (USD)"})
+            st.plotly_chart(fig2, use_container_width=True)
+
+        with col2:
+            st.write("**By Department**")
+            balance_by_dept = filtered_data.groupby('Department')['Balance'].sum().reset_index()
+            fig3 = px.pie(balance_by_dept, values='Balance', names='Department', title="Total Balance by Department")
+            st.plotly_chart(fig3, use_container_width=True)
+
+        # Payment Method Distribution
+        st.subheader("💳 Payment Method Distribution")
         payment_method_dist = filtered_data['Payment_Method'].value_counts().reset_index()
-        fig = px.pie(payment_method_dist, values='Payment_Method', names='index', title="Payment Method Distribution")
-        st.plotly_chart(fig, use_container_width=True)
+        fig4 = px.pie(payment_method_dist, values='Payment_Method', names='index', title="Payment Method Distribution", labels={"index": "Payment Method", "Payment_Method": "Count"})
+        st.plotly_chart(fig4, use_container_width=True)
 
-        # 5. Tax and Discount Insights
-        st.write("### Tax and Discount Overview")
-        fig = go.Figure()
-        fig.add_trace(go.Indicator(
-            mode="number+delta",
-            value=filtered_data['Tax_Amount'].sum(),
-            title="Total Tax Amount",
-            delta={'reference': data['Tax_Amount'].sum()}
-        ))
-        fig.add_trace(go.Indicator(
-            mode="number+delta",
-            value=filtered_data['Discount_Amount'].sum(),
-            title="Total Discount Amount",
-            delta={'reference': data['Discount_Amount'].sum()}
-        ))
-        st.plotly_chart(fig, use_container_width=True)
+        # Tax and Discount Insights (side-by-side comparison for better clarity)
+        st.subheader("🧾 Tax and Discount Insights")
+        col1, col2 = st.columns(2)
 
-        # Footer note
-        st.write("This dashboard provides a real-time view of financial data for accounting teams and CFOs, with key insights on transactions, balances, and payment methods.")
+        with col1:
+            st.write("**Tax Overview**")
+            total_tax = filtered_data['Tax_Amount'].sum()
+            fig5 = go.Figure(go.Indicator(
+                mode="number+delta",
+                value=total_tax,
+                title={"text": "Total Tax Amount"},
+                delta={"reference": data['Tax_Amount'].sum()},
+                number={'prefix': "$"}
+            ))
+            st.plotly_chart(fig5, use_container_width=True)
+
+        with col2:
+            st.write("**Discount Overview**")
+            total_discount = filtered_data['Discount_Amount'].sum()
+            fig6 = go.Figure(go.Indicator(
+                mode="number+delta",
+                value=total_discount,
+                title={"text": "Total Discount Amount"},
+                delta={"reference": data['Discount_Amount'].sum()},
+                number={'prefix': "$"}
+            ))
+            st.plotly_chart(fig6, use_container_width=True)
+
+        # Footer note for clarity and user instruction
+        st.markdown("""
+        ---
+        **Note:** This dashboard provides real-time insights into financial transactions, 
+        enabling CFOs and accounting teams to monitor credits, debits, balances, and trends effectively.
+        """)
     
     except Exception as e:
         st.error(f"Error loading data: {e}")
