@@ -17,7 +17,7 @@ def load_data_from_github(file_url):
 # Main Streamlit App
 def main():
     # Page Title
-    st.title("📊 Comprehensive Financial Dashboard")
+    st.title("Comprehensive Financial Dashboard")
 
     # Load the financial data from GitHub
     file_url = "https://raw.githubusercontent.com/CRF-Software/FinancialReporting-/main/financial_sample_data.csv"
@@ -43,7 +43,7 @@ def main():
     ]
 
     # Display Key Metrics
-    st.subheader("💰 Key Financial Metrics")
+    st.subheader("Key Financial Metrics")
     total_credits = filtered_data[filtered_data['Transaction_Type'] == 'Credit']['Transaction_Amount'].sum()
     total_debits = filtered_data[filtered_data['Transaction_Type'] == 'Debit']['Transaction_Amount'].sum()
     total_balance = filtered_data['Balance'].sum()
@@ -62,19 +62,19 @@ def main():
     plot_width = 600
 
     # Transaction Amount by Type
-    st.subheader("🔄 Transaction Amount by Type")
+    st.subheader("Transaction Amount by Type")
     transaction_by_type = filtered_data.groupby('Transaction_Type')['Transaction_Amount'].sum().reset_index()
     fig1 = px.bar(transaction_by_type, x='Transaction_Type', y='Transaction_Amount', title="Transaction Amount by Type", width=plot_width, height=plot_height)
     st.plotly_chart(fig1, use_container_width=False)
 
     # Transaction Volume by Payment Method
-    st.subheader("💳 Transaction Volume by Payment Method")
+    st.subheader("Transaction Volume by Payment Method")
     transaction_by_payment_method = filtered_data.groupby('Payment_Method')['Transaction_Amount'].sum().reset_index()
     fig2 = px.pie(transaction_by_payment_method, values='Transaction_Amount', names='Payment_Method', title="Transaction Volume by Payment Method", width=plot_width, height=plot_height)
     st.plotly_chart(fig2, use_container_width=False)
 
     # Transaction Amount by Department
-    st.subheader("🏢 Transaction Amount by Department")
+    st.subheader("Transaction Amount by Department")
     transaction_by_department = filtered_data.groupby('Department')['Transaction_Amount'].sum().reset_index()
     fig3 = px.bar(transaction_by_department, x='Department', y='Transaction_Amount', title="Transaction Amount by Department", width=plot_width, height=plot_height)
     st.plotly_chart(fig3, use_container_width=False)
@@ -82,13 +82,13 @@ def main():
     ### Balance Analysis ###
 
     # Balance by Branch
-    st.subheader("🏦 Balance by Branch")
+    st.subheader("Balance by Branch")
     balance_by_branch = filtered_data.groupby('Branch_ID')['Balance'].sum().reset_index()
     fig4 = px.bar(balance_by_branch, x='Branch_ID', y='Balance', title="Balance by Branch", width=plot_width, height=plot_height)
     st.plotly_chart(fig4, use_container_width=False)
 
     # Balance by Payment Method
-    st.subheader("💳 Balance by Payment Method")
+    st.subheader("Balance by Payment Method")
     balance_by_payment_method = filtered_data.groupby('Payment_Method')['Balance'].sum().reset_index()
     fig5 = px.bar(balance_by_payment_method, x='Payment_Method', y='Balance', title="Balance by Payment Method", width=plot_width, height=plot_height)
     st.plotly_chart(fig5, use_container_width=False)
@@ -104,20 +104,20 @@ def main():
     ### Tax and Discount Analysis ###
 
     # Total Tax Amount Over Time
-    st.subheader("🧾 Total Tax Amount Over Time")
+    st.subheader("Total Tax Amount Over Time")
     tax_over_time = filtered_data.groupby('Date')['Tax_Amount'].sum().reset_index()
     fig7 = px.line(tax_over_time, x='Date', y='Tax_Amount', title="Total Tax Amount Over Time", width=plot_width, height=plot_height)
     st.plotly_chart(fig7, use_container_width=False)
 
     # Total Discounts by Payment Method
-    st.subheader("💲 Total Discounts by Payment Method")
+    st.subheader("Total Discounts by Payment Method")
     discount_by_payment_method = filtered_data.groupby('Payment_Method')['Discount_Amount'].sum().reset_index()
     fig8 = px.bar(discount_by_payment_method, x='Payment_Method', y='Discount_Amount', title="Discounts by Payment Method", width=plot_width, height=plot_height)
     st.plotly_chart(fig8, use_container_width=False)
 
     ### Correlation Matrix ###
 
-    st.subheader("📊 Correlation Matrix")
+    st.subheader("Correlation Matrix")
     numeric_data = filtered_data.select_dtypes(include=['float64', 'int64'])
     correlation_matrix = numeric_data.corr()
     fig_corr = px.imshow(correlation_matrix, text_auto=True, title="Correlation Matrix Heatmap", width=plot_width, height=plot_height)
