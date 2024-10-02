@@ -4,7 +4,7 @@ import plotly.express as px
 from datetime import datetime
 
 # Set page configuration
-st.set_page_config(page_title="Non-Profit CFO Dashboard", layout="wide")
+st.set_page_config(page_title="Non-Profit CFO Comparative Dashboard", layout="wide")
 
 # Load data from Excel file
 @st.cache_data
@@ -23,7 +23,7 @@ def load_data():
 
 # Main dashboard app
 def main():
-    st.title("CFO Dashboard - Non-Profit Organization")
+    st.title("Comparative CFO Dashboard - Non-Profit Organization")
 
     # Load the data
     shelter_operations, funding_sources, donors, payroll, grant_allocations, utilities = load_data()
@@ -55,54 +55,63 @@ def main():
 
     st.markdown("---")
 
-    # Plot: Daily Operating Costs Over Time
-    st.subheader("Daily Operating Costs Over Time")
-    costs_over_time = filtered_data.groupby('Date')['Total_Daily_Cost'].sum().reset_index()
-    fig1 = px.line(costs_over_time, x='Date', y='Total_Daily_Cost', title="Daily Operating Costs Over Time")
-    st.plotly_chart(fig1, use_container_width=True)
-
-    # Plot: Occupancy Rate by Shelter Location
-    st.subheader("Occupancy Rate by Shelter Location")
-    occupancy_by_shelter = filtered_data.groupby('Shelter_Location')['Occupancy_Rate (%)'].mean().reset_index()
-    fig2 = px.bar(occupancy_by_shelter, x='Shelter_Location', y='Occupancy_Rate (%)', title="Average Occupancy Rate by Shelter Location")
-    st.plotly_chart(fig2, use_container_width=True)
-
-    # Funding Sources Summary
-    st.subheader("Funding Sources Overview")
-    fig3 = px.pie(funding_sources, values='Funding_Amount', names='Source_Name', title="Funding Sources Breakdown")
-    st.plotly_chart(fig3, use_container_width=True)
-
-    # Donor Contributions Summary
-    st.subheader("Top Donors")
-    top_donors = donors.groupby('Donor_Name')['Donation_Amount'].sum().nlargest(10).reset_index()
-    fig4 = px.bar(top_donors, x='Donor_Name', y='Donation_Amount', title="Top 10 Donors")
-    st.plotly_chart(fig4, use_container_width=True)
-
-    # Payroll Overview
-    st.subheader("Payroll Overview")
-    total_payroll = payroll['Total_Compensation'].sum()
-    avg_salary = payroll['Salary'].mean()
+    # Compare Shelters by Daily Operating Costs
+    st.subheader("Compare Daily Operating Costs by Shelter")
+    selected_compare_shelters = st.multiselect("Select Shelters to Compare", shelter_operations['Shelter_Location'].unique(), default=shelter_operations['Shelter_Location'].unique())
     
-    col5, col6 = st.columns(2)
-    col5.metric("Total Payroll", f"${total_payroll:,.2f}")
-    col6.metric("Average Salary", f"${avg_salary:,.2f}")
+    compare_shelter_data = shelter_operations[(shelter_operations['Shelter_Location'].isin(selected_compare_shelters)) & 
+                                              (shelter_operations['Date'] >= pd.to_datetime(start_date)) & 
+                                              (shelter_operations['Date'] <= pd.to_datetime(end_date))]
+    
+    costs_comparison = compare_shelter_data.groupby(['Date', 'Shelter_Location'])['Total_Daily_Cost'].sum().reset_index()
+    fig_costs_comparison = px.line(costs_comparison, x='Date', y='Total_Daily_Cost', color='Shelter_Location', title="Comparative Daily Costs Across Shelters")
+    st.plotly_chart(fig_costs_comparison, use_container_width=True)
 
-    # Grant Allocations by Purpose
-    st.subheader("Grant Allocations by Purpose")
-    grant_allocation_by_purpose = grant_allocations.groupby('Purpose')['Allocation_Amount'].sum().reset_index()
-    fig5 = px.bar(grant_allocation_by_purpose, x='Purpose', y='Allocation_Amount', title="Grant Allocations by Purpose")
-    st.plotly_chart(fig5, use_container_width=True)
+    # Compare Occupancy Rates by Shelter
+    st.subheader("Compare Occupancy Rates by Shelter")
+    compare_occupancy = compare_shelter_data.groupby(['Date', 'Shelter_Location'])['Occupancy_Rate (%)'].mean().reset_index()
+    fig_occupancy_comparison = px.line(compare_occupancy, x='Date', y='Occupancy_Rate (%)', color='Shelter_Location', title="Comparative Occupancy Rates Across Shelters")
+    st.plotly_chart(fig_occupancy_comparison, use_container_width=True)
 
-    # Utilities Costs Summary
-    st.subheader("Utilities Costs")
-    utilities_summary = utilities.groupby('Utility_Type')['Utility_Cost'].sum().reset_index()
-    fig6 = px.pie(utilities_summary, values='Utility_Cost', names='Utility_Type', title="Utilities Costs Breakdown")
-    st.plotly_chart(fig6, use_container_width=True)
+    # Comparative Funding Sources by Source Type
+    st.subheader("Compare Funding Sources")
+    selected_funding_type = st.selectbox("Select Funding Type", funding_sources['Funding_Type'].unique())
+    funding_filtered = funding_sources[funding_sources['Funding_Type'] == selected_funding_type]
+
+    fig_funding_comparison = px.pie(funding_filtered, values='Funding_Amount', names='Source_Name', title=f"Funding Breakdown - {selected_funding_type}")
+    st.plotly_chart(fig_funding_comparison, use_container_width=True)
+
+    # Comparative Donor Contributions
+    st.subheader("Compare Donor Contributions by Donor Type")
+    selected_donor_type = st.multiselect("Select Donor Type", donors['Donor_Type'].unique(), default=donors['Donor_Type'].unique())
+    donor_filtered = donors[donors['Donor_Type'].isin(selected_donor_type)]
+
+    fig_donor_comparison = px.bar(donor_filtered, x='Donor_Name', y='Donation_Amount', color='Donor_Type', title="Comparative Donor Contributions")
+    st.plotly_chart(fig_donor_comparison, use_container_width=True)
+
+    # Payroll Comparison by Role
+    st.subheader("Compare Payroll by Role")
+    selected_roles = st.multiselect("Select Roles to Compare", payroll['Role'].unique(), default=payroll['Role'].unique())
+    payroll_filtered = payroll[payroll['Role'].isin(selected_roles)]
+
+    fig_payroll_comparison = px.bar(payroll_filtered, x='Role', y='Total_Compensation', color='Role', title="Payroll Comparison by Role")
+    st.plotly_chart(fig_payroll_comparison, use_container_width=True)
+
+    # Compare Utilities Costs
+    st.subheader("Compare Utilities Costs by Type")
+    selected_utility_type = st.multiselect("Select Utility Type", utilities['Utility_Type'].unique(), default=utilities['Utility_Type'].unique())
+    utilities_filtered = utilities[utilities['Utility_Type'].isin(selected_utility_type)]
+
+    fig_utilities_comparison = px.bar(utilities_filtered, x='Utility_Type', y='Utility_Cost', color='Utility_Type', title="Comparative Utilities Costs by Type")
+    st.plotly_chart(fig_utilities_comparison, use_container_width=True)
+
+    st.markdown("---")
 
     # Footer
     st.markdown("""
     ---
-    **Note:** This dashboard provides a comprehensive overview of the financial operations of shelters, funding sources, donor contributions, payroll, grant allocations, and utilities costs for a non-profit organization.
+    **Note:** This dashboard provides a comparative overview of financial operations for shelters, 
+    including comparisons across shelters, funding sources, donors, payroll, and utilities costs.
     """)
 
 if __name__ == "__main__":
