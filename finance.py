@@ -138,7 +138,6 @@ def main():
     st.plotly_chart(fig_corr, use_container_width=False)
 
     st.markdown("---")
-    import pandas as pd
 
 # Existing code goes here (if you have any pre-defined functions or imports)
 
